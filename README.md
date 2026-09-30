@@ -12,3 +12,6 @@ https://app.cirkitdesigner.com/project/1af9469b-62b8-4dd0-8bcb-aa57ff71ed36
 
 # Mine Aegis Prototype Voiceover
 https://drive.google.com/file/d/1Z_uzc1S9OD8s0mESqFXeYzWoKLXH-qK1/view?usp=drivesdk
+
+# Mine Aegis Documentation
+https://drive.google.com/file/d/1HgNJThEtaRjRE4s8HlmO-tsgod-JxkEX/view?usp=drivesdk
