@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mine Aegis - SMARTSURFACE-MESH | SIH 2026</title>
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for AI & Telemetry visualizer -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Mine Aegis Theme: Blue, Slate, White */
+    :root {
+      --bg-main: #f4f7fb;
+      --bg-card: #ffffff;
+      --bg-sidebar: #0f172a;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #f8fafc;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --level-normal: #10b981;
+      --level-watch: #f59e0b;
+      --level-high: #f97316;
+      --level-critical: #ef4444;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      --radius: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Header & Banners */
+    .sih-banner {
+      background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      color: #ffffff; padding: 8px 24px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b;
+    }
+    .sih-badge { background: #f59e0b; color: #0f172a; font-weight: 800; padding: 2px 8px; border-radius: 4px; margin-right: 8px; font-size: 0.75rem; text-transform: uppercase; }
+    .team-badge { background: rgba(255,255,255,0.15); padding: 2px 10px; border-radius: 20px; font-weight: 600; }
+    .app-header { background: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; }
+    .header-title-container { display: flex; align-items: center; gap: 16px; }
+    .logo-icon { width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; padding: 3px; flex-shrink: 0; }
+    .logo-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .header-text h1 { font-size: 1.35rem; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+    .header-text p { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
+
+    /* Warning Level Control Bar */
+    .warning-control-bar { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--border-color); }
+    .warning-bar-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; }
+    .btn-level { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; color: white; box-shadow: var(--shadow-sm); opacity: 0.65; }
+    .btn-level:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-level.active { opacity: 1; transform: scale(1.05); box-shadow: 0 0 12px rgba(0,0,0,0.15); outline: 2px solid white; }
+    .btn-level-normal { background-color: var(--level-normal); }
+    .btn-level-watch { background-color: var(--level-watch); }
+    .btn-level-high { background-color: var(--level-high); }
+    .btn-level-critical { background-color: var(--level-critical); animation: pulseAlert 1.5s infinite; }
+    @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+    /* Critical Emergency Banner */
+    .critical-alarm-banner { background: linear-gradient(90deg, #dc2626, #b91c1c, #dc2626); background-size: 200% 200%; animation: gradientShift 2s infinite, alarmPulse 1s infinite alternate; color: white; padding: 12px 24px; display: none; justify-content: space-between; align-items: center; font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); z-index: 99; }
+    .critical-alarm-banner.active { display: flex; }
+    @keyframes alarmPulse { 0% { opacity: 0.9; } 100% { opacity: 1; filter: drop-shadow(0 0 10px #ef4444); } }
+    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .btn-mute-alarm { background: white; color: #dc2626; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+    /* Navigation Tabs */
+    .nav-tabs { display: flex; gap: 6px; padding: 10px 24px; background: #ffffff; border-bottom: 1px solid var(--border-color); overflow-x: auto; }
+    .tab-btn { background: transparent; border: 1px solid transparent; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; white-space: nowrap; }
+    .tab-btn:hover { background: var(--primary-light); color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25); }
+
+    /* Main Container & Stat Cards */
+    .main-container { padding: 20px 24px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 20px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .stat-card { background: var(--bg-card); padding: 16px 20px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; }
+    .stat-info h4 { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    .stat-info .stat-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 4px 0; }
+    .stat-info .stat-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+    .icon-blue { background: #dbeafe; color: #2563eb; }
+    .icon-green { background: #d1fae5; color: #059669; }
+    .icon-orange { background: #ffedd5; color: #ea580c; }
+    .icon-purple { background: #f3e8ff; color: #9333ea; }
+
+    /* GIS Tactical Map */
+    .gis-section { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; min-height: 540px; }
+    @media (max-width: 1024px) { .gis-section { grid-template-columns: 1fr; } }
+    .map-card { background: #090d16; border-radius: var(--radius); border: 1px solid #1e293b; box-shadow: var(--shadow-md); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .map-header { background: rgba(15, 23, 42, 0.95); padding: 12px 18px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+    .map-title { color: #38bdf8; font-family: monospace; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .map-controls { display: flex; gap: 8px; }
+    .map-btn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-family: monospace; }
+    .map-btn:hover, .map-btn.active { background: #2563eb; color: white; border-color: #3b82f6; }
+    .map-viewport { position: relative; flex: 1; min-height: 480px; cursor: crosshair; }
+    #meshCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .map-hud-topleft { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 8px 12px; color: #e2e8f0; font-family: monospace; font-size: 0.75rem; pointer-events: none; z-index: 5; }
+    .map-hud-legend { position: absolute; bottom: 12px; right: 12px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border: 1px solid #334155; border-radius: 6px; padding: 10px 14px; color: #94a3b8; font-size: 0.75rem; z-index: 5; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-color { width: 10px; height: 10px; border-radius: 50%; }
+    .line-legend { width: 18px; height: 2px; border-top: 2px dashed #38bdf8; }
+
+    /* Side Panel & Drawers */
+    .side-panel { display: flex; flex-direction: column; gap: 16px; }
+    .panel-card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); padding: 18px; box-shadow: var(--shadow-sm); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+    .panel-header h3 { font-size: 0.95rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .node-list-mini { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+    .node-item { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; }
+    .node-item:hover { background: var(--primary-light); border-color: var(--primary-border); }
+    .node-tag { font-weight: 700; font-size: 0.85rem; color: #0f172a; font-family: monospace; }
+    .node-zone { font-size: 0.72rem; color: var(--text-muted); }
+    .node-metrics { text-align: right; font-size: 0.75rem; font-family: monospace; }
+    .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .badge-normal { background: #d1fae5; color: #047857; }
+    .badge-watch { background: #fef3c7; color: #b45309; }
+    .badge-high { background: #ffedd5; color: #c2410c; }
+    .badge-critical { background: #fee2e2; color: #b91c1c; }
+
+    /* AI / Spatiotemporal Matrix & Charts */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+    .chart-container { position: relative; height: 260px; width: 100%; }
+    .spatiotemporal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .grid-cell { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; font-family: monospace; font-size: 0.78rem; transition: all 0.3s ease; }
+    .grid-cell .cell-val { font-size: 1.1rem; font-weight: 800; margin-top: 4px; }
+
+    /* Alert Checklist & Feed */
+    .alert-feed { display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; }
+    .alert-item { border-left: 4px solid var(--primary); background: #f8fafc; padding: 12px 16px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: flex-start; box-shadow: var(--shadow-sm); }
+    .alert-item.normal { border-color: var(--level-normal); }
+    .alert-item.watch { border-color: var(--level-watch); }
+    .alert-item.high { border-color: var(--level-high); }
+    .alert-item.critical { border-color: var(--level-critical); background: #fef2f2; }
+    .alert-title { font-weight: 700; font-size: 0.88rem; color: #0f172a; }
+    .alert-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+    .alert-time { font-size: 0.72rem; color: var(--text-muted); font-family: monospace; }
+
+    /* Hardware Table */
+    .tech-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .tech-table th, .tech-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-color); }
+    .tech-table th { background: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+
+    /* Buttons */
+    .btn-action { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+    .btn-action:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-outline:hover { background: #f1f5f9; }
+
+    /* Inspector Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: white; border-radius: var(--radius); width: 90%; max-width: 550px; padding: 24px; box-shadow: var(--shadow-lg); position: relative; max-height: 85vh; overflow-y: auto; }
+    .modal-close { position: absolute; top: 16px; right: 16px; border: none; background: #f1f5f9; width: 28px; height: 28px; border-radius: 50%; font-weight: 700; cursor: pointer; }
+    footer { background: var(--bg-card); border-top: 1px solid var(--border-color); padding: 16px 24px; text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- SIH 2026 Header Banner -->
+  <div class="sih-banner">
+    <div>
+      <span class="sih-badge">SIH 2026</span>
+      <strong>Problem Statement ID: SIH26025</strong> | Theme: Smart Automation | Category: Hardware
+    </div>
+    <div>
+      <span class="team-badge"><i class="fa-solid fa-shield-halved"></i> Team Mine Aegis</span>
+    </div>
+  </div>
+
+  <!-- Main App Header -->
+  <header class="app-header">
+    <div class="header-title-container">
+      <div class="logo-icon">
+        <img src="https://mine-aegis-sih2026.surge.sh/logo.png" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-shield-halved\' style=\'font-size:32px; color:#2563eb;\'></i>'" alt="Mine Aegis Logo">
+      </div>
+      <div class="header-text">
+        <h1>MINE AEGIS</h1>
+        <p>Real-Time Mine Aegis & Early Warning System</p>
+      </div>
+    </div>
+
+    <!-- Warning Level Buttons -->
+    <div class="warning-control-bar">
+      <span class="warning-bar-label"><i class="fa-solid fa-triangle-exclamation"></i> Risk Level:</span>
+      <button class="btn-level btn-level-normal active" id="btnNormal" onclick="setRiskLevel('NORMAL')">
+        <i class="fa-solid fa-circle-check"></i> NORMAL
+      </button>
+      <button class="btn-level btn-level-watch" id="btnWatch" onclick="setRiskLevel('WATCH')">
+        <i class="fa-solid fa-eye"></i> WATCH
+      </button>
+      <button class="btn-level btn-level-high" id="btnHigh" onclick="setRiskLevel('HIGH')">
+        <i class="fa-solid fa-triangle-exclamation"></i> HIGH
+      </button>
+      <button class="btn-level btn-level-critical" id="btnCritical" onclick="setRiskLevel('CRITICAL')">
+        <i class="fa-solid fa-bell"></i> CRITICAL
+      </button>
+    </div>
+  </header>
+
+  <!-- Critical Emergency Alarm Banner -->
+  <div class="critical-alarm-banner" id="alarmBanner">
+    <div>
+      <i class="fa-solid fa-triangle-exclamation fa-beat"></i> <strong>CRITICAL MINE AEGIS EMERGENCY ALARM ACTIVATED!</strong>
+      <span style="margin-left: 12px; font-weight: normal; font-size: 0.85rem;">[AUDIO SIREN RINGING... EVACUATE ZONE A & SHAFTS IMMEDIATELY]</span>
+    </div>
+    <button class="btn-mute-alarm" onclick="stopSirenAlert()">
+      <i class="fa-solid fa-volume-xmark"></i> MUTE ALARM SIREN
+    </button>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('gisMap', this)">
+      <i class="fa-solid fa-map-location-dot"></i> GIS Surface Mesh Map
+    </button>
+    <button class="tab-btn" onclick="switchTab('aiEngine', this)">
+      <i class="fa-solid fa-brain"></i> AI/ML Spatiotemporal Engine
+    </button>
+    <button class="tab-btn" onclick="switchTab('meshTopology', this)">
+      <i class="fa-solid fa-diagram-project"></i> LoRa Mesh Network
+    </button>
+    <button class="tab-btn" onclick="switchTab('earlyWarning', this)">
+      <i class="fa-solid fa-paper-plane"></i> Early Warning Center
+    </button>
+    <button class="tab-btn" onclick="switchTab('hardwareSpecs', this)">
+      <i class="fa-solid fa-microchip"></i> Made In India Specs
+    </button>
+    <button class="tab-btn" onclick="switchTab('dataSync', this)">
+      <i class="fa-solid fa-database"></i> Logs & Cloud Sync
+    </button>
+  </nav>
+
+  <main class="main-container">
+    
+    <!-- Dynamic Status Stats Bar -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <h4>Active Surface Nodes</h4>
+          <div class="stat-value" id="valActiveNodes">8 / 8</div>
+          <div class="stat-sub" id="valMeshHealth">Mesh Health: 99.4% (Self-Healing)</div>
+        </div>
+        <div class="stat-icon icon-blue"><i class="fa-solid fa-tower-cell"></i></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <h4>Max Surface Tilt</h4>
+          <div class="stat-value" id="valMaxTilt">0.32°</div>
+          <div class="stat-sub" id="valTiltStatus">Normal (&lt; 1.0° Threshold)</div>
+        </div>
+        <div class="stat-icon icon-green" id="iconTiltBg"><i class="fa-solid fa-compass-drafting"></i></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <h4>Max Strain / Displacement</h4>
+          <div class="stat-value" id="valDisplacement">0.85 mm</div>
+          <div class="stat-sub" id="valDisplacementStatus">Stable ground baseline</div>
+        </div>
+        <div class="stat-icon icon-orange" id="iconDispBg"><i class="fa-solid fa-arrows-left-right-to-line"></i></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <h4>AI Subsidence Risk Score</h4>
+          <div class="stat-value" id="valRiskScore">12%</div>
+          <div class="stat-sub" id="valRiskCategory">LOW RISK - NORMAL</div>
+        </div>
+        <div class="stat-icon icon-purple" id="iconRiskBg"><i class="fa-solid fa-chart-line"></i></div>
+      </div>
+    </div>
+
+    <!-- TAB 1: GIS SURFACE MESH MAP -->
+    <div id="gisMap" class="tab-content active">
+      <div class="gis-section">
+        <div class="map-card">
+          <div class="map-header">
+            <div class="map-title">
+              <i class="fa-solid fa-crosshairs"></i> KORBA COALFIELD LEASE BOUNDARY (NORTH 22°41'12" N, 82°35'44" E)
+            </div>
+            <div class="map-controls">
+              <button class="map-btn active" id="btnToggleMesh" onclick="toggleMeshLines()">Mesh Links: ON</button>
+              <button class="map-btn" id="btnToggleHeatmap" onclick="toggleHeatmap()">Heatmap: OFF</button>
+            </div>
+          </div>
+
+          <div class="map-viewport" id="mapContainer">
+            <canvas id="meshCanvas"></canvas>
+            <div class="map-hud-topleft">
+              <div><strong style="color: #38bdf8;">PANEL:</strong> KORBA SEAM 4 FACE 1</div>
+              <div><strong style="color: #38bdf8;">ACTIVE MESH:</strong> LoRa 868 MHz (Multi-Hop)</div>
+              <div><strong style="color: #38bdf8;">LATENCY:</strong> 120ms | PDR: 99.8%</div>
+            </div>
+            <div class="map-hud-legend">
+              <div class="legend-item"><span class="legend-color" style="background: #10b981;"></span> Normal Node</div>
+              <div class="legend-item"><span class="legend-color" style="background: #f59e0b;"></span> Watch Node</div>
+              <div class="legend-item"><span class="legend-color" style="background: #f97316;"></span> High Risk</div>
+              <div class="legend-item"><span class="legend-color" style="background: #ef4444;"></span> Critical Warning</div>
+              <div class="legend-item"><span class="line-legend"></span> Animated LoRa Signal Hop</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-satellite-dish"></i> Surface Sensor Mesh Nodes</h3>
+              <button class="btn-action btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="randomizeSensors()">
+                <i class="fa-solid fa-rotate"></i> Ping Mesh
+              </button>
+            </div>
+            <div class="node-list-mini" id="nodeListMini"></div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-sliders"></i> Dynamic Simulation Controls</h3>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Select a risk level above or manually tweak parameters to observe progressive surface deformation.
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div>
+                <label style="font-size: 0.78rem; font-weight: 700;">Depillaring Face Tilt (Zone A): <span id="lblTiltSlider">0.3°</span></label>
+                <input type="range" min="0" max="15" step="0.1" value="0.3" id="sliderTilt" style="width: 100%; cursor: pointer;" oninput="onTiltSliderChange(this.value)">
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button class="btn-action btn-outline" style="flex:1; font-size:0.75rem;" onclick="simulateNodeFailure()">
+                  <i class="fa-solid fa-power-off"></i> Simulate Node Failover
+                </button>
+                <button class="btn-action" style="flex:1; font-size:0.75rem;" onclick="triggerSirenAlert()">
+                  <i class="fa-solid fa-volume-high"></i> Test Sound Siren
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: AI ML ENGINE -->
+    <div id="aiEngine" class="tab-content">
+      <div class="analytics-grid">
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-chart-line"></i> Real-Time Tilt & Displacement Time-Series</h3>
+            <span class="status-badge badge-normal" id="aiStatusBadge">LSTM Stream: Normal</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartTimeSeries"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-spider"></i> Multi-Sensor Fusion Signature</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Combining Tilt, Displacement, Vibration & Crack</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartRadarFusion"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-table-cells"></i> Spatiotemporal Node Correlation Matrix</h3>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            Analyzes neighboring nodes across spatial coordinates & time to distinguish spreading ground subsidence from sensor noise.
+          </p>
+          <div class="spatiotemporal-grid" id="spatiotemporalGrid"></div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-calculator"></i> AI Subsidence Velocity & ETA to Failure</h3>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 6px;">
+              <span style="font-size: 0.85rem; font-weight: 600;">Predicted Subsidence Velocity:</span>
+              <strong id="aiVelVal" style="color: #2563eb; font-family: monospace;">0.04 mm/hour</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 6px;">
+              <span style="font-size: 0.85rem; font-weight: 600;">Estimated Time To Critical Threshold (TTF):</span>
+              <strong id="aiTtfVal" style="color: #059669; font-family: monospace;">&gt; 72 Hours (STABLE)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 6px;">
+              <span style="font-size: 0.85rem; font-weight: 600;">DGMS Safety Guideline Status:</span>
+              <strong id="aiDgmsVal" style="color: #047857;">COMPLIANT (SAFE)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: LORA MESH TOPOLOGY -->
+    <div id="meshTopology" class="tab-content">
+      <div class="analytics-grid">
+        <div class="panel-card" style="grid-column: span 2;">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-diagram-project"></i> Wireless Surface LoRa Mesh Topology & Self-Healing Architecture</h3>
+            <span class="status-badge badge-normal" id="meshTopBadge">Topology Status: Optimal Hops</span>
+          </div>
+          <div style="padding: 16px; background: #0f172a; border-radius: 8px; color: white;">
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">
+              The <strong>SMARTSURFACE-MESH</strong> treats the mine surface as a connected sensing field. If any individual sensor node fails, neighbor nodes automatically re-route data packages to central gateway <strong>GW-01</strong>.
+            </p>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px;" id="meshDiagramContainer"></div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-signal"></i> Signal Quality (RSSI dBm)</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartRssi"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-battery-three-quarters"></i> Node Battery & Solar Power Health</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartBattery"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: EARLY WARNING CENTER -->
+    <div id="earlyWarning" class="tab-content">
+      <div class="analytics-grid">
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-bell"></i> Multi-Channel Automated Early Warning Alerts</h3>
+            <button class="btn-action" onclick="dispatchTestAlert()"><i class="fa-solid fa-paper-plane"></i> Test Broadcast</button>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; background: #f8fafc;">
+              <h4 style="font-size: 0.85rem; color: #0f172a; margin-bottom: 6px;"><i class="fa-solid fa-comment-sms" style="color: #2563eb;"></i> SMS Gateway Alert (DGMS Protocol)</h4>
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem;" id="smsPreviewBox">
+                [MINE AEGIS-ALERT] Level: NORMAL. Surface panel Korba Seam 4 stable. Max ground tilt: 0.3°. No action required.
+              </div>
+            </div>
+
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; background: #f8fafc;">
+              <h4 style="font-size: 0.85rem; color: #0f172a; margin-bottom: 6px;"><i class="fa-solid fa-envelope" style="color: #059669;"></i> Automated Email Summary</h4>
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-size: 0.8rem;" id="emailPreviewBox">
+                <strong>To:</strong> safetymanager@coalindia.in<br>
+                <strong>Subject:</strong> Mine Aegis Subsidence Telemetry Report - Korba Lease Boundary<br>
+                <strong>Status:</strong> All 8 Mesh Surface Nodes operational within safe limits.
+              </div>
+            </div>
+
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; background: #f8fafc;">
+              <h4 style="font-size: 0.85rem; color: #0f172a; margin-bottom: 6px;"><i class="fa-solid fa-mobile-screen-button" style="color: #9333ea;"></i> Mobile App Push Notification</h4>
+              <div style="background: #0f172a; color: white; padding: 10px; border-radius: 6px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;" id="pushPreviewBox">
+                <div>
+                  <strong style="color: #38bdf8;">Mine Aegis App</strong><br>
+                  Surface deformation normal across all zones.
+                </div>
+                <span style="font-size: 0.7rem; color: #94a3b8;">Just now</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-list-check"></i> Standard Evacuation & Emergency Protocol</h3>
+          </div>
+          <div class="alert-feed" id="protocolChecklist">
+            <div class="alert-item normal">
+              <div>
+                <div class="alert-title">Level 1 Protocol: Routine Continuous Sensing</div>
+                <div class="alert-desc">Mesh pings every 5 seconds. Baseline deformation tracking.</div>
+              </div>
+              <div class="alert-time">ACTIVE</div>
+            </div>
+            <div class="alert-item watch">
+              <div>
+                <div class="alert-title">Level 2 Protocol: Increased Mesh Sampling Rate</div>
+                <div class="alert-desc">Switch LoRa sampling from 5s to 1s. Notify shift safety engineer.</div>
+              </div>
+              <div class="alert-time">STANDBY</div>
+            </div>
+            <div class="alert-item high">
+              <div>
+                <div class="alert-title">Level 3 Protocol: Underground Machinery Halt</div>
+                <div class="alert-desc">Halt shearer / depillaring machinery below active zone. Evacuate face.</div>
+              </div>
+              <div class="alert-time">STANDBY</div>
+            </div>
+            <div class="alert-item critical">
+              <div>
+                <div class="alert-title">Level 4 Protocol: Complete Surface & Shaft Evacuation</div>
+                <div class="alert-desc">Trigger audio sirens, automated SMS broadcast to DGMS regulator.</div>
+              </div>
+              <div class="alert-time">STANDBY</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: MADE IN INDIA HARDWARE SPECS -->
+    <div id="hardwareSpecs" class="tab-content">
+      <div class="analytics-grid">
+        <div class="panel-card" style="grid-column: span 2;">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-microchip"></i> Made In India Smart Surface Node Architecture</h3>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Designed specifically for Indian geo-mining conditions using accessible, low-cost off-the-shelf electronics.
+          </p>
+
+          <table class="tech-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Selected Hardware</th>
+                <th>Functionality in Mine Aegis</th>
+                <th>Unit Cost (INR)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Microcontroller</strong></td>
+                <td>ESP32-S3 Dual-Core WROOM</td>
+                <td>Edge processing, LoRa mesh stack, low power deep sleep</td>
+                <td>₹450</td>
+              </tr>
+              <tr>
+                <td><strong>Tilt / IMU Sensor</strong></td>
+                <td>MPU6050 6-DOF Accelerometer/Gyro</td>
+                <td>Micro ground tilt detection (0.01° resolution)</td>
+                <td>₹180</td>
+              </tr>
+              <tr>
+                <td><strong>Strain / Displacement</strong></td>
+                <td>Linear Potentiometric Strain Gauge</td>
+                <td>Relative node-to-node ground displacement sensing</td>
+                <td>₹350</td>
+              </tr>
+              <tr>
+                <td><strong>Vibration / Seismic</strong></td>
+                <td>SW-420 High Sensitivity Vibration Module</td>
+                <td>Micro-tremor and pre-subsidence ground shock detection</td>
+                <td>₹90</td>
+              </tr>
+              <tr>
+                <td><strong>Crack Sensor</strong></td>
+                <td>Conductive Trace Crack Expansion Meter</td>
+                <td>Early tension crack initiation monitoring</td>
+                <td>₹120</td>
+              </tr>
+              <tr>
+                <td><strong>Wireless Mesh RF</strong></td>
+                <td>SX1262 868MHz LoRa Transceiver</td>
+                <td>Long-range multi-hop surface mesh communication (up to 3 km)</td>
+                <td>₹650</td>
+              </tr>
+              <tr>
+                <td><strong>Power System</strong></td>
+                <td>3.7V 3200mAh LiFePO4 + 5V 2W Solar Panel</td>
+                <td>Continuous 24/7 solar-powered field operation</td>
+                <td>₹610</td>
+              </tr>
+              <tr style="background: #eff6ff; font-weight: 700;">
+                <td colspan="3"><strong>Total Hardware Cost Per Smart Node</strong></td>
+                <td style="color: #2563eb;"><strong>₹2,450 (~$30 USD)</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 10px;">
+            * Commercial satellite InSAR / imported Leica subsidence stations cost &gt; ₹3.5 Lakhs per point. Mine Aegis enables 100+ nodes deployment for less than the cost of a single legacy station!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: LOGS & CLOUD SYNC -->
+    <div id="dataSync" class="tab-content">
+      <div class="analytics-grid">
+        <div class="panel-card" style="grid-column: span 2;">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-database"></i> Live Sensor Telemetry Logs & Cloud Synchronization</h3>
+            <div>
+              <button class="btn-action btn-outline" id="btnToggleOffline" onclick="toggleOfflineMode()">
+                <i class="fa-solid fa-wifi"></i> Status: ONLINE (Cloud Sync Active)
+              </button>
+              <button class="btn-action" onclick="exportDataCSV()">
+                <i class="fa-solid fa-file-csv"></i> Export CSV Report
+              </button>
+            </div>
+          </div>
+          
+          <div style="max-height: 320px; overflow-y: auto; background: #0f172a; color: #38bdf8; border-radius: 6px; padding: 14px; font-family: monospace; font-size: 0.78rem;" id="logTerminal">
+            [00:00:01] Gateway GW-01 initialized. Mesh network connected (8/8 nodes online).<br>
+            [00:00:05] Node SN-01-A Telemetry: Pitch=0.12° Roll=0.08° Disp=0.4mm Battery=98% RSSI=-72dBm.<br>
+            [00:00:06] Node SN-02-A Telemetry: Pitch=0.15° Roll=0.10° Disp=0.5mm Battery=96% RSSI=-75dBm.<br>
+            [00:00:07] Spatiotemporal AI model running spatial correlation matrix... Status: STABLE.<br>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Node Inspector Modal HUD -->
+  <div class="modal-overlay" id="nodeModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeNodeModal()">×</button>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div class="logo-icon" style="width: 36px; height: 36px; font-size: 1.1rem;">
+          <i class="fa-solid fa-tower-cell"></i>
+        </div>
+        <div>
+          <h3 id="modalNodeId" style="font-size: 1.1rem; color: #0f172a;">Node SN-01-A</h3>
+          <p id="modalNodeZone" style="font-size: 0.8rem; color: var(--text-muted);">Zone A - Active Depillaring Face</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Tilt Angle (X/Y)</div>
+          <strong id="modalTilt" style="font-family: monospace; font-size: 1rem; color: #2563eb;">0.24° / 0.18°</strong>
+        </div>
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Displacement / Strain</div>
+          <strong id="modalDisplacement" style="font-family: monospace; font-size: 1rem; color: #059669;">0.65 mm</strong>
+        </div>
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Vibration Frequency</div>
+          <strong id="modalVib" style="font-family: monospace; font-size: 1rem; color: #d97706;">0.02 g (Normal)</strong>
+        </div>
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Crack Gauge Width</div>
+          <strong id="modalCrack" style="font-family: monospace; font-size: 1rem; color: #7c3aed;">0.00 mm</strong>
+        </div>
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">Battery Level</div>
+          <strong id="modalBattery" style="font-family: monospace; font-size: 1rem;">98% (Solar Charging)</strong>
+        </div>
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">LoRa Signal Strength</div>
+          <strong id="modalRssi" style="font-family: monospace; font-size: 1rem;">-74 dBm (Excellent)</strong>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; text-align: right;">
+        <button class="btn-action" onclick="closeNodeModal()">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <strong>Mine Aegis</strong> - Made in India Smart Mining Safety Solution | SIH 2026 Problem Statement SIH26025
+  </footer>
+
+  <script>
+    // System State
+    let currentRiskLevel = 'NORMAL';
+    let meshLinesEnabled = true;
+    let heatmapEnabled = false;
+    let isOfflineMode = false;
+    let activeNodeFailure = false;
+    let failedNodeId = null;
+
+    // Nodes Definition
+    const nodes = [
+      { id: 'SN-01-A', name: 'Node 01 (Depillaring)', zone: 'Zone A', xRel: 0.28, yRel: 0.32, tilt: 0.24, disp: 0.5, vib: 0.02, crack: 0.0, battery: 98, rssi: -72, status: 'NORMAL' },
+      { id: 'SN-02-A', name: 'Node 02 (Face 1)', zone: 'Zone A', xRel: 0.38, yRel: 0.42, tilt: 0.28, disp: 0.6, vib: 0.03, crack: 0.0, battery: 96, rssi: -75, status: 'NORMAL' },
+      { id: 'GW-01',    name: 'Gateway GW-01', zone: 'Zone B', xRel: 0.50, yRel: 0.55, tilt: 0.00, disp: 0.0, vib: 0.00, crack: 0.0, battery: 100, rssi: -50, status: 'GATEWAY', isGateway: true },
+      { id: 'SN-03-B', name: 'Node 03 (Central)', zone: 'Zone B', xRel: 0.50, yRel: 0.30, tilt: 0.15, disp: 0.3, vib: 0.01, crack: 0.0, battery: 94, rssi: -68, status: 'NORMAL' },
+      { id: 'SN-04-B', name: 'Node 04 (North-East)', zone: 'Zone B', xRel: 0.62, yRel: 0.40, tilt: 0.18, disp: 0.4, vib: 0.01, crack: 0.0, battery: 97, rssi: -71, status: 'NORMAL' },
+      { id: 'SN-05-C', name: 'Node 05 (South-West)', zone: 'Zone C', xRel: 0.33, yRel: 0.78, tilt: 0.12, disp: 0.2, vib: 0.01, crack: 0.0, battery: 92, rssi: -82, status: 'NORMAL' },
+      { id: 'SN-06-C', name: 'Node 06 (West Panel)', zone: 'Zone C', xRel: 0.44, yRel: 0.85, tilt: 0.14, disp: 0.3, vib: 0.01, crack: 0.0, battery: 95, rssi: -78, status: 'NORMAL' },
+      { id: 'SN-07-D', name: 'Node 07 (East Panel)', zone: 'Zone D', xRel: 0.58, yRel: 0.84, tilt: 0.10, disp: 0.2, vib: 0.01, crack: 0.0, battery: 99, rssi: -76, status: 'NORMAL' },
+      { id: 'SN-08-D', name: 'Node 08 (South-East)', zone: 'Zone D', xRel: 0.68, yRel: 0.68, tilt: 0.11, disp: 0.2, vib: 0.01, crack: 0.0, battery: 91, rssi: -80, status: 'NORMAL' }
+    ];
+
+    // Mesh Links
+    const meshLinks = [
+      ['SN-01-A', 'SN-02-A'],
+      ['SN-02-A', 'GW-01'],
+      ['SN-03-B', 'GW-01'],
+      ['SN-04-B', 'GW-01'],
+      ['SN-05-C', 'SN-06-C'],
+      ['SN-06-C', 'GW-01'],
+      ['SN-07-D', 'SN-08-D'],
+      ['SN-08-D', 'GW-01'],
+      ['SN-02-A', 'SN-04-B'],
+      ['SN-06-C', 'SN-07-D']
+    ];
+
+    let signalPackets = [];
+    for (let i = 0; i < meshLinks.length; i++) {
+      signalPackets.push({ linkIndex: i, progress: Math.random(), speed: 0.005 + Math.random() * 0.005 });
+    }
+
+    let chartTimeSeries, chartRadarFusion, chartRssi, chartBattery;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initMapCanvas();
+      renderNodeListMini();
+      initCharts();
+      renderSpatiotemporalGrid();
+      renderMeshDiagram();
+      startTelemetryLoop();
+    });
+
+    function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btnElement.classList.add('active');
+      if (tabId === 'gisMap') setTimeout(resizeCanvas, 100);
+    }
+
+    function setRiskLevel(level) {
+      currentRiskLevel = level;
+      document.querySelectorAll('.btn-level').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn' + level.charAt(0).toUpperCase() + level.slice(1).toLowerCase()).classList.add('active');
+      
+      const slider = document.getElementById('sliderTilt');
+      if (level === 'NORMAL') {
+        slider.value = 0.3;
+        nodes.forEach(n => {
+          if (!n.isGateway) {
+            n.tilt = (0.1 + Math.random() * 0.3).toFixed(2);
+            n.disp = (0.2 + Math.random() * 0.4).toFixed(2);
+            n.vib = (0.01 + Math.random() * 0.02).toFixed(2);
+            n.crack = 0.0;
+            n.status = 'NORMAL';
+          }
+        });
+      } else if (level === 'WATCH') {
+        slider.value = 2.4;
+        nodes.forEach(n => {
+          if (n.zone === 'Zone A' && !n.isGateway) {
+            n.tilt = (2.1 + Math.random() * 0.8).toFixed(2);
+            n.disp = (3.2 + Math.random() * 1.0).toFixed(2);
+            n.vib = (0.12 + Math.random() * 0.05).toFixed(2);
+            n.crack = 0.4;
+            n.status = 'WATCH';
+          } else if (!n.isGateway) {
+            n.tilt = (0.4 + Math.random() * 0.3).toFixed(2);
+            n.disp = (0.8 + Math.random() * 0.4).toFixed(2);
+            n.status = 'NORMAL';
+          }
+        });
+      } else if (level === 'HIGH') {
+        slider.value = 6.5;
+        nodes.forEach(n => {
+          if (n.zone === 'Zone A' && !n.isGateway) {
+            n.tilt = (6.2 + Math.random() * 1.5).toFixed(2);
+            n.disp = (8.4 + Math.random() * 2.0).toFixed(2);
+            n.vib = (0.45 + Math.random() * 0.15).toFixed(2);
+            n.crack = 1.8;
+            n.status = 'HIGH';
+          } else if (n.zone === 'Zone B' && !n.isGateway) {
+            n.tilt = (2.2 + Math.random() * 0.5).toFixed(2);
+            n.disp = (2.8 + Math.random() * 0.5).toFixed(2);
+            n.status = 'WATCH';
+          } else if (!n.isGateway) {
+            n.tilt = (0.6 + Math.random() * 0.3).toFixed(2);
+            n.status = 'NORMAL';
+          }
+        });
+      } else if (level === 'CRITICAL') {
+        slider.value = 14.2;
+        nodes.forEach(n => {
+          if (n.zone === 'Zone A' && !n.isGateway) {
+            n.tilt = (13.8 + Math.random() * 2.5).toFixed(2);
+            n.disp = (21.5 + Math.random() * 4.0).toFixed(2);
+            n.vib = (1.25 + Math.random() * 0.45).toFixed(2);
+            n.crack = 6.2;
+            n.status = 'CRITICAL';
+          } else if (!n.isGateway) {
+            n.tilt = (5.5 + Math.random() * 2.0).toFixed(2);
+            n.disp = (7.8 + Math.random() * 2.5).toFixed(2);
+            n.vib = (0.35 + Math.random() * 0.1).toFixed(2);
+            n.crack = 1.5;
+            n.status = 'HIGH';
+          }
+        });
+        triggerSirenAlert();
+      }
+
+      if (level !== 'CRITICAL') stopSirenAlert();
+
+      document.getElementById('lblTiltSlider').innerText = slider.value + '°';
+      updateUIOverall();
+      logTerminalMsg(`[RISK LEVEL CHANGED] System state updated to ${level}`);
+    }
+
+    function onTiltSliderChange(val) {
+      document.getElementById('lblTiltSlider').innerText = val + '°';
+      const f = parseFloat(val);
+      if (f < 1.0) setRiskLevel('NORMAL');
+      else if (f < 4.0) setRiskLevel('WATCH');
+      else if (f < 10.0) setRiskLevel('HIGH');
+      else setRiskLevel('CRITICAL');
+    }
+
+    function updateUIOverall() {
+      let maxTilt = 0, maxDisp = 0;
+      nodes.forEach(n => {
+        if (!n.isGateway) {
+          if (parseFloat(n.tilt) > maxTilt) maxTilt = parseFloat(n.tilt);
+          if (parseFloat(n.disp) > maxDisp) maxDisp = parseFloat(n.disp);
+        }
+      });
+
+      document.getElementById('valMaxTilt').innerText = maxTilt.toFixed(2) + '°';
+      document.getElementById('valDisplacement').innerText = maxDisp.toFixed(2) + ' mm';
+
+      let riskScore = Math.min(100, Math.round((maxTilt / 15.0) * 100));
+      document.getElementById('valRiskScore').innerText = riskScore + '%';
+
+      const riskCatEl = document.getElementById('valRiskCategory');
+      const iconRiskBg = document.getElementById('iconRiskBg');
+
+      if (currentRiskLevel === 'NORMAL') {
+        riskCatEl.innerText = 'LOW RISK - SAFE GROUND';
+        riskCatEl.style.color = '#059669';
+        iconRiskBg.className = 'stat-icon icon-green';
+      } else if (currentRiskLevel === 'WATCH') {
+        riskCatEl.innerText = 'MODERATE RISK - WATCH ZONE A';
+        riskCatEl.style.color = '#d97706';
+        iconRiskBg.className = 'stat-icon icon-orange';
+      } else if (currentRiskLevel === 'HIGH') {
+        riskCatEl.innerText = 'HIGH RISK - DEPRESSION SPREADING';
+        riskCatEl.style.color = '#ea580c';
+        iconRiskBg.className = 'stat-icon icon-orange';
+      } else {
+        riskCatEl.innerText = 'CRITICAL RISK - SUBSIDENCE IMMINENT!';
+        riskCatEl.style.color = '#dc2626';
+        iconRiskBg.className = 'stat-icon icon-purple';
+      }
+
+      document.getElementById('aiVelVal').innerText = (maxTilt * 0.45).toFixed(2) + ' mm/hour';
+      const ttfEl = document.getElementById('aiTtfVal');
+      const dgmsEl = document.getElementById('aiDgmsVal');
+
+      if (currentRiskLevel === 'NORMAL') {
+        ttfEl.innerText = '> 72 Hours (STABLE BASELINE)';
+        ttfEl.style.color = '#059669';
+        dgmsEl.innerText = 'COMPLIANT (SAFE)';
+        dgmsEl.style.color = '#047857';
+      } else if (currentRiskLevel === 'WATCH') {
+        ttfEl.innerText = '~ 24-48 Hours (SLOW TILT)';
+        ttfEl.style.color = '#d97706';
+        dgmsEl.innerText = 'WARNING: DGMS LEVEL 2 TRIGGERED';
+        dgmsEl.style.color = '#b45309';
+      } else if (currentRiskLevel === 'HIGH') {
+        ttfEl.innerText = '~ 4-8 Hours (RAPID MOVEMENTS)';
+        ttfEl.style.color = '#ea580c';
+        dgmsEl.innerText = 'ACTION REQUIRED: STOP FACE MACHINES';
+        dgmsEl.style.color = '#c2410c';
+      } else {
+        ttfEl.innerText = 'IMMINENT (< 30 MINUTES)';
+        ttfEl.style.color = '#dc2626';
+        dgmsEl.innerText = 'EMERGENCY EVACUATION MANDATED';
+        dgmsEl.style.color = '#b91c1c';
+      }
+
+      updateAlertPreviews(maxTilt, maxDisp);
+      renderNodeListMini();
+      updateChartsData();
+      renderSpatiotemporalGrid();
+    }
+
+    function updateAlertPreviews(maxTilt, maxDisp) {
+      const smsBox = document.getElementById('smsPreviewBox');
+      const emailBox = document.getElementById('emailPreviewBox');
+      const pushBox = document.getElementById('pushPreviewBox');
+
+      if (currentRiskLevel === 'NORMAL') {
+        smsBox.innerText = `[MINE AEGIS] Korba Seam 4 Surface Mesh: NORMAL. Max Tilt=${maxTilt}° Disp=${maxDisp}mm. Continuous sensing active.`;
+        emailBox.innerHTML = `<strong>To:</strong> safetymanager@coalindia.in<br><strong>Subject:</strong> Mine Aegis Telemetry Status - Korba Lease<br><strong>Status:</strong> All 8 nodes reporting normal ground stability.`;
+        pushBox.innerHTML = `<div><strong style="color:#38bdf8;">Mine Aegis Safe</strong><br>Surface deformation within normal limits.</div><span style="font-size:0.7rem; color:#94a3b8;">Just now</span>`;
+      } else if (currentRiskLevel === 'WATCH') {
+        smsBox.innerText = `[MINE AEGIS-WATCH] Early micro-tilt detected in Zone A. Tilt=${maxTilt}° Disp=${maxDisp}mm. Mesh sampling rate increased to 1s.`;
+        emailBox.innerHTML = `<strong>To:</strong> safetymanager@coalindia.in<br><strong>Subject:</strong> [WATCH ALERT] Surface Micro-Tilt Detected in Zone A<br><strong>Details:</strong> Nodes SN-01-A & SN-02-A recording progressive micro-tilt.`;
+        pushBox.innerHTML = `<div><strong style="color:#f59e0b;">Mine Aegis Watch Alert</strong><br>Zone A Micro-tilt threshold exceeded (${maxTilt}°).</div><span style="font-size:0.7rem; color:#94a3b8;">Just now</span>`;
+      } else if (currentRiskLevel === 'HIGH') {
+        smsBox.innerText = `[MINE AEGIS-HIGH ALERT] Spreading surface deformation in Korba Face 1! Max Tilt=${maxTilt}° Disp=${maxDisp}mm. Stop face machinery immediately!`;
+        emailBox.innerHTML = `<strong>To:</strong> safetymanager@coalindia.in, dgms_regulator@gov.in<br><strong>Subject:</strong> [HIGH RISK] Ground Deformation Spreading in Zone A<br><strong>Action:</strong> Halt underground shearer operations in Panel Face 1.`;
+        pushBox.innerHTML = `<div><strong style="color:#f97316;">Mine Aegis High Alert</strong><br>Halt face operations! Deformation spreading across Zone A.</div><span style="font-size:0.7rem; color:#94a3b8;">Just now</span>`;
+      } else {
+        smsBox.innerText = `[CRITICAL EVACUATION ALARM] IMMINENT SUBSIDENCE FAILURE DETECTED! Max Tilt=${maxTilt}° Disp=${maxDisp}mm. EVACUATE SURFACE & SHAFTS IMMEDIATELY!`;
+        emailBox.innerHTML = `<strong>To:</strong> ALL MINE SAFETY OFFICERS, DGMS REGULATOR<br><strong>Subject:</strong> [EMERGENCY CRITICAL] Imminent Subsidence Collapse<br><strong>CRITICAL:</strong> Ground failure signature detected. Evacuate personnel!`;
+        pushBox.innerHTML = `<div><strong style="color:#ef4444;">CRITICAL EMERGENCY ALARM</strong><br>Subsidence ground failure imminent! Evacuate now!</div><span style="font-size:0.7rem; color:#94a3b8;">Just now</span>`;
+      }
+    }
+
+    // GIS Map Canvas
+    let canvas, ctx, angleRadar = 0;
+    function initMapCanvas() {
+      canvas = document.getElementById('meshCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      canvas.addEventListener('click', handleCanvasClick);
+      requestAnimationFrame(drawMapFrame);
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('mapContainer');
+      if (!container || !canvas) return;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+
+    function drawMapFrame() {
+      if (!canvas || !ctx) return;
+      const w = canvas.width, h = canvas.height;
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+      // Radar Rings
+      const centerX = w * 0.5, centerY = h * 0.55;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+      [80, 160, 240, 320].forEach(r => { ctx.beginPath(); ctx.arc(centerX, centerY, r, 0, Math.PI * 2); ctx.stroke(); });
+
+      // Radar Sweep
+      angleRadar += 0.015;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(angleRadar);
+      const gradRadar = ctx.createRadialGradient(0, 0, 10, 0, 0, 240);
+      gradRadar.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+      gradRadar.addColorStop(1, 'rgba(56, 189, 248, 0)');
+      ctx.fillStyle = gradRadar;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, 240, 0, Math.PI * 0.25);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Zones
+      ctx.strokeStyle = (currentRiskLevel === 'CRITICAL' || currentRiskLevel === 'HIGH') ? 'rgba(239, 68, 68, 0.8)' : 'rgba(245, 158, 11, 0.6)';
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(w * 0.22, h * 0.18, w * 0.22, h * 0.35);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+      ctx.fillRect(w * 0.22, h * 0.18, w * 0.22, h * 0.35);
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('[Zone A] ACTIVE DEPILLARING FACE', w * 0.23, h * 0.22);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText('SERIES MINE FACE 1 COAL', w * 0.23, h * 0.48);
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.setLineDash([]);
+      ctx.strokeRect(w * 0.46, h * 0.18, w * 0.25, h * 0.42);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText('[Zone B] CENTRAL STABILITY', w * 0.48, h * 0.22);
+
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.5)';
+      ctx.strokeRect(w * 0.22, h * 0.65, w * 0.24, h * 0.28);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('[Zone C] SW PANEL', w * 0.23, h * 0.69);
+
+      ctx.strokeRect(w * 0.52, h * 0.65, w * 0.24, h * 0.28);
+      ctx.fillText('[Zone D] SE PANEL', w * 0.54, h * 0.69);
+
+      // Heatmap
+      if (heatmapEnabled || currentRiskLevel === 'HIGH' || currentRiskLevel === 'CRITICAL') {
+        const heatX = w * 0.33, heatY = h * 0.37, heatRadius = (currentRiskLevel === 'CRITICAL') ? 140 : 80;
+        const gradHeat = ctx.createRadialGradient(heatX, heatY, 5, heatX, heatY, heatRadius);
+        if (currentRiskLevel === 'CRITICAL') {
+          gradHeat.addColorStop(0, 'rgba(239, 68, 68, 0.75)');
+          gradHeat.addColorStop(0.5, 'rgba(249, 115, 22, 0.5)');
+          gradHeat.addColorStop(1, 'rgba(239, 68, 68, 0)');
+        } else {
+          gradHeat.addColorStop(0, 'rgba(245, 158, 11, 0.6)');
+          gradHeat.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        }
+        ctx.fillStyle = gradHeat;
+        ctx.beginPath();
+        ctx.arc(heatX, heatY, heatRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Mesh Links & Packets
+      if (meshLinesEnabled) {
+        meshLinks.forEach((link, linkIdx) => {
+          const nodeA = nodes.find(n => n.id === link[0]);
+          const nodeB = nodes.find(n => n.id === link[1]);
+          if (!nodeA || !nodeB) return;
+          if (activeNodeFailure && (nodeA.id === failedNodeId || nodeB.id === failedNodeId)) return;
+
+          const ax = nodeA.xRel * w, ay = nodeA.yRel * h;
+          const bx = nodeB.xRel * w, by = nodeB.yRel * h;
+
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(bx, by);
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = (currentRiskLevel === 'CRITICAL') ? 'rgba(239, 68, 68, 0.6)' : 'rgba(56, 189, 248, 0.45)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const pkt = signalPackets[linkIdx];
+          if (pkt) {
+            pkt.progress += pkt.speed;
+            if (pkt.progress > 1) pkt.progress = 0;
+            const px = ax + (bx - ax) * pkt.progress;
+            const py = ay + (by - ay) * pkt.progress;
+            ctx.fillStyle = (currentRiskLevel === 'CRITICAL') ? '#ef4444' : '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      // Draw Nodes
+      nodes.forEach(n => {
+        const nx = n.xRel * w, ny = n.yRel * h;
+        if (activeNodeFailure && n.id === failedNodeId) {
+          ctx.fillStyle = '#64748b';
+          ctx.beginPath();
+          ctx.arc(nx, ny, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText(n.id + ' [OFFLINE]', nx + 10, ny + 3);
+          return;
+        }
+
+        if (n.status === 'WATCH' || n.status === 'HIGH' || n.status === 'CRITICAL') {
+          const pulseRadius = 12 + Math.sin(Date.now() * 0.008) * 4;
+          ctx.fillStyle = (n.status === 'CRITICAL') ? 'rgba(239, 68, 68, 0.35)' : 'rgba(245, 158, 11, 0.35)';
+          ctx.beginPath();
+          ctx.arc(nx, ny, pulseRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        let nodeColor = '#10b981';
+        if (n.isGateway) nodeColor = '#2563eb';
+        else if (n.status === 'WATCH') nodeColor = '#f59e0b';
+        else if (n.status === 'HIGH') nodeColor = '#f97316';
+        else if (n.status === 'CRITICAL') nodeColor = '#ef4444';
+
+        ctx.fillStyle = nodeColor;
+        ctx.beginPath();
+        ctx.arc(nx, ny, n.isGateway ? 10 : 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(n.id, nx + 10, ny + 3);
+
+        if (!n.isGateway) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '9px monospace';
+          ctx.fillText(`${n.tilt}° | ${n.disp}mm`, nx + 10, ny + 14);
+        }
+      });
+
+      requestAnimationFrame(drawMapFrame);
+    }
+
+    function handleCanvasClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left, clickY = e.clientY - rect.top;
+      const w = canvas.width, h = canvas.height;
+      nodes.forEach(n => {
+        const nx = n.xRel * w, ny = n.yRel * h;
+        if (Math.sqrt((clickX - nx) ** 2 + (clickY - ny) ** 2) <= 16) openNodeModal(n);
+      });
+    }
+
+    function renderNodeListMini() {
+      const listEl = document.getElementById('nodeListMini');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      nodes.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'node-item';
+        div.onclick = () => openNodeModal(n);
+        let badgeClass = 'badge-normal';
+        if (n.status === 'WATCH') badgeClass = 'badge-watch';
+        else if (n.status === 'HIGH') badgeClass = 'badge-high';
+        else if (n.status === 'CRITICAL') badgeClass = 'badge-critical';
+        div.innerHTML = `
+          <div><span class="node-tag">${n.id}</span><div class="node-zone">${n.zone}</div></div>
+          <div class="node-metrics"><div>Tilt: <strong>${n.tilt}°</strong></div><span class="status-badge ${badgeClass}">${n.status}</span></div>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    function openNodeModal(node) {
+      document.getElementById('modalNodeId').innerText = node.id + (node.isGateway ? ' (CENTRAL GATEWAY)' : '');
+      document.getElementById('modalNodeZone').innerText = `${node.zone} | Latency: 120ms`;
+      document.getElementById('modalTilt').innerText = `${node.tilt}° (X/Y Axis)`;
+      document.getElementById('modalDisplacement').innerText = `${node.disp} mm`;
+      document.getElementById('modalVib').innerText = `${node.vib} g`;
+      document.getElementById('modalCrack').innerText = `${node.crack} mm`;
+      document.getElementById('modalBattery').innerText = `${node.battery}% (Solar LiFePO4)`;
+      document.getElementById('modalRssi').innerText = `${node.rssi} dBm`;
+      document.getElementById('nodeModal').classList.add('active');
+    }
+
+    function closeNodeModal() {
+      document.getElementById('nodeModal').classList.remove('active');
+    }
+
+    // Charts
+    function initCharts() {
+      const ctxTime = document.getElementById('chartTimeSeries').getContext('2d');
+      chartTimeSeries = new Chart(ctxTime, {
+        type: 'line',
+        data: {
+          labels: ['00s', '10s', '20s', '30s', '40s', '50s', '60s'],
+          datasets: [
+            { label: 'Ground Tilt (°)', data: [0.2, 0.22, 0.25, 0.24, 0.28, 0.3, 0.32], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 },
+            { label: 'Displacement (mm)', data: [0.4, 0.45, 0.5, 0.52, 0.6, 0.7, 0.85], borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      const ctxRadar = document.getElementById('chartRadarFusion').getContext('2d');
+      chartRadarFusion = new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+          labels: ['IMU Tilt', 'Displacement', 'Micro Vibration', 'Crack Meter', 'Temp Anomaly'],
+          datasets: [{ label: 'Current Sensor Signature', data: [15, 12, 10, 5, 8], backgroundColor: 'rgba(37, 99, 235, 0.25)', borderColor: '#2563eb', pointBackgroundColor: '#2563eb' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
+      });
+
+      const ctxRssi = document.getElementById('chartRssi').getContext('2d');
+      chartRssi = new Chart(ctxRssi, {
+        type: 'bar',
+        data: {
+          labels: nodes.filter(n => !n.isGateway).map(n => n.id),
+          datasets: [{ label: 'LoRa RSSI (dBm)', data: nodes.filter(n => !n.isGateway).map(n => n.rssi), backgroundColor: '#38bdf8' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      const ctxBat = document.getElementById('chartBattery').getContext('2d');
+      chartBattery = new Chart(ctxBat, {
+        type: 'bar',
+        data: {
+          labels: nodes.filter(n => !n.isGateway).map(n => n.id),
+          datasets: [{ label: 'Battery %', data: nodes.filter(n => !n.isGateway).map(n => n.battery), backgroundColor: '#10b981' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function updateChartsData() {
+      if (!chartTimeSeries) return;
+      const nowStr = new Date().toLocaleTimeString().slice(3, 8);
+      chartTimeSeries.data.labels.shift();
+      chartTimeSeries.data.labels.push(nowStr);
+
+      const maxTilt = parseFloat(document.getElementById('valMaxTilt').innerText);
+      const maxDisp = parseFloat(document.getElementById('valDisplacement').innerText);
+
+      chartTimeSeries.data.datasets[0].data.shift();
+      chartTimeSeries.data.datasets[0].data.push(maxTilt);
+      chartTimeSeries.data.datasets[1].data.shift();
+      chartTimeSeries.data.datasets[1].data.push(maxDisp);
+      chartTimeSeries.update();
+
+      let radarNorm = 15;
+      if (currentRiskLevel === 'WATCH') radarNorm = 40;
+      else if (currentRiskLevel === 'HIGH') radarNorm = 75;
+      else if (currentRiskLevel === 'CRITICAL') radarNorm = 95;
+
+      chartRadarFusion.data.datasets[0].data = [radarNorm, radarNorm * 0.9, radarNorm * 0.8, radarNorm * 0.7, radarNorm * 0.4];
+      chartRadarFusion.update();
+    }
+
+    function renderSpatiotemporalGrid() {
+      const gridEl = document.getElementById('spatiotemporalGrid');
+      if (!gridEl) return;
+      gridEl.innerHTML = '';
+      ['SN-01-A', 'SN-02-A', 'SN-03-B', 'SN-04-B', 'SN-05-C', 'SN-06-C', 'SN-07-D', 'SN-08-D'].forEach(id => {
+        const node = nodes.find(n => n.id === id);
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        let bg = '#f8fafc';
+        if (node.status === 'WATCH') bg = '#fef3c7';
+        else if (node.status === 'HIGH') bg = '#ffedd5';
+        else if (node.status === 'CRITICAL') bg = '#fee2e2';
+        cell.style.background = bg;
+        cell.innerHTML = `<div>${id}</div><div class="cell-val" style="color: ${node.status === 'NORMAL' ? '#059669' : '#dc2626'}">${node.tilt}°</div>`;
+        gridEl.appendChild(cell);
+      });
+    }
+
+    function renderMeshDiagram() {
+      const container = document.getElementById('meshDiagramContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      nodes.filter(n => !n.isGateway).forEach(n => {
+        const box = document.createElement('div');
+        box.style.background = '#1e293b'; box.style.padding = '10px 14px'; box.style.borderRadius = '8px'; box.style.textAlign = 'center'; box.style.border = '1px solid #334155';
+        box.innerHTML = `<div style="font-weight: bold; color: #38bdf8; font-family: monospace;">${n.id}</div><div style="font-size: 0.75rem; color: #94a3b8;">${n.zone}</div><div style="font-size: 0.72rem; color: #10b981; margin-top: 4px;"><i class="fa-solid fa-arrow-right"></i> ${n.zone === 'Zone A' ? '2 Hops' : '1 Hop'} <i class="fa-solid fa-arrow-right"></i> GW-01</div>`;
+        container.appendChild(box);
+      });
+    }
+
+    function startTelemetryLoop() {
+      setInterval(() => {
+        nodes.forEach(n => {
+          if (!n.isGateway && n.status !== 'CRITICAL') {
+            const jitter = (Math.random() * 0.04 - 0.02);
+            n.tilt = Math.max(0.05, (parseFloat(n.tilt) + jitter)).toFixed(2);
+          }
+        });
+        updateUIOverall();
+      }, 4000);
+    }
+
+    function toggleMeshLines() {
+      meshLinesEnabled = !meshLinesEnabled;
+      document.getElementById('btnToggleMesh').innerText = `Mesh Links: ${meshLinesEnabled ? 'ON' : 'OFF'}`;
+      document.getElementById('btnToggleMesh').classList.toggle('active', meshLinesEnabled);
+    }
+
+    function toggleHeatmap() {
+      heatmapEnabled = !heatmapEnabled;
+      document.getElementById('btnToggleHeatmap').innerText = `Heatmap: ${heatmapEnabled ? 'ON' : 'OFF'}`;
+      document.getElementById('btnToggleHeatmap').classList.toggle('active', heatmapEnabled);
+    }
+
+    function simulateNodeFailure() {
+      activeNodeFailure = !activeNodeFailure;
+      failedNodeId = activeNodeFailure ? 'SN-02-A' : null;
+      if (activeNodeFailure) {
+        logTerminalMsg('[SELF-HEALING EVENT] Node SN-02-A disconnected. Re-routing mesh paths via SN-01-A -> SN-04-B -> GW-01.');
+        document.getElementById('valMeshHealth').innerText = 'Mesh Health: 87.5% (Self-Healed via Hop B)';
+        alert('Simulated Failure: Node SN-02-A offline!\nSelf-Healing Mesh automatically re-routed data packets through neighbor Node SN-04-B.');
+      } else {
+        logTerminalMsg('[RECOVERY EVENT] Node SN-02-A rejoined mesh network.');
+        document.getElementById('valMeshHealth').innerText = 'Mesh Health: 99.4% (Self-Healing Active)';
+      }
+    }
+
+    // Sound Siren (Web Audio API)
+    let sirenAudioCtx = null, sirenOsc = null, sirenGain = null, sirenTimer = null, isSirenActive = false;
+
+    function triggerSirenAlert() {
+      stopSirenAlert();
+      const banner = document.getElementById('alarmBanner');
+      if (banner) banner.classList.add('active');
+      try {
+        sirenAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sirenAudioCtx.state === 'suspended') sirenAudioCtx.resume();
+        sirenOsc = sirenAudioCtx.createOscillator();
+        sirenGain = sirenAudioCtx.createGain();
+        sirenOsc.type = 'sawtooth';
+        sirenOsc.frequency.setValueAtTime(650, sirenAudioCtx.currentTime);
+        let isHighPitch = false;
+        sirenTimer = setInterval(() => {
+          if (!sirenOsc || !sirenAudioCtx) return;
+          sirenOsc.frequency.linearRampToValueAtTime(isHighPitch ? 650 : 950, sirenAudioCtx.currentTime + 0.35);
+          isHighPitch = !isHighPitch;
+        }, 380);
+        sirenGain.gain.setValueAtTime(0.25, sirenAudioCtx.currentTime);
+        sirenOsc.connect(sirenGain);
+        sirenGain.connect(sirenAudioCtx.destination);
+        sirenOsc.start();
+        isSirenActive = true;
+        logTerminalMsg('[AUDIO SIREN] Continuous Emergency Alarm Siren RINGING!');
+      } catch (err) { console.log('Audio Context Error:', err); }
+    }
+
+    function stopSirenAlert() {
+      if (sirenTimer) { clearInterval(sirenTimer); sirenTimer = null; }
+      if (sirenOsc) { try { sirenOsc.stop(); sirenOsc.disconnect(); } catch (e) {} sirenOsc = null; }
+      if (sirenAudioCtx) { try { sirenAudioCtx.close(); } catch (e) {} sirenAudioCtx = null; }
+      isSirenActive = false;
+      const banner = document.getElementById('alarmBanner');
+      if (banner) banner.classList.remove('active');
+      logTerminalMsg('[AUDIO SIREN] Alarm Siren Muted / Stopped.');
+    }
+
+    document.addEventListener('click', () => {
+      if (sirenAudioCtx && sirenAudioCtx.state === 'suspended') sirenAudioCtx.resume();
+    });
+
+    function toggleOfflineMode() {
+      isOfflineMode = !isOfflineMode;
+      const btn = document.getElementById('btnToggleOffline');
+      if (isOfflineMode) {
+        btn.innerHTML = `<i class="fa-solid fa-wifi-slash" style="color:#ef4444;"></i> Status: OFFLINE (Edge Buffer Active)`;
+        logTerminalMsg('[NETWORK STACK] Switched to Offline Mode. Telemetry buffering in local Flash storage.');
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-wifi" style="color:#10b981;"></i> Status: ONLINE (Cloud Sync Active)`;
+        logTerminalMsg('[NETWORK STACK] Connection restored. Synchronized 142 records to Cloud Database.');
+      }
+    }
+
+    function exportDataCSV() {
+      let csv = 'Node_ID,Zone,Tilt_Deg,Displacement_mm,Vibration_g,Crack_mm,Battery_Pct,RSSI_dBm,Status\n';
+      nodes.forEach(n => { csv += `${n.id},${n.zone},${n.tilt},${n.disp},${n.vib},${n.crack},${n.battery},${n.rssi},${n.status}\n`; });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = window.URL.createObjectURL(blob);
+      a.download = 'mine_aegis_surface_mesh_report.csv';
+      a.click();
+      logTerminalMsg('[EXPORT] Exported telemetry report CSV file.');
+    }
+
+    function dispatchTestAlert() {
+      alert(`[MINE AEGIS EARLY WARNING DISPATCH]\n\nMulti-channel alert successfully sent!\nSMS: DGMS Safety Manager (+91 9876543210)\nEmail: safetymanager@coalindia.in\nApp Push: Mine Aegis Operator App`);
+      logTerminalMsg('[ALERT DISPATCH] Test notification sent via Twilio SMS & SendGrid SMTP.');
+    }
+
+    function logTerminalMsg(msg) {
+      const term = document.getElementById('logTerminal');
+      if (!term) return;
+      term.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + term.innerHTML;
+    }
+  </script>
+</body>
+</html>
